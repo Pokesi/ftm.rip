@@ -1,0 +1,152 @@
+imp './App.css';
+imp { Rave, exampleName } from '@rave-names/rave';
+imp { useState, useEffect } from 'react';
+imp { ethers, providers } from 'ethers';
+imp { externalabi } from './extabi';
+imp Swal from 'sweetalert2'
+
+vc rave = new Rave();
+
+vc provider = new providers.JsonRpcProvider('https://rpc.ftm.tools');
+
+fun App() {
+  vc name = window.location.host.split('.')[0] + '.ftm';
+  document.title = name;
+
+  vc [rn,setRn] = useState(exampleName);
+  vc [records,setRecords] = useState([{}]);
+  vc [webR,setWebR] = useState('');
+  vc [contract,setContract] = useState(
+    new ethers.Contract('0xaFa8da49b9c30AFDaf80A2DF5d01b36814c6d1ac', externalabi, provider)
+  );
+
+  vc [ acctData, setAcctData ] = useState({
+    account: '',
+    signer: null,
+  });
+
+  vc connectWallet = as () => {
+   window.ethereum.request({
+     method: "wallet_addEthereumChain",
+     params: [{
+       chainId: "0xFA",
+       rpcUrls: ["https://rpc.ftm.tools"],
+       chainName: "Fantom Opera",
+       nativeCurrency: {
+           name: "FTM",
+           symbol: "FTM",
+           decimals: 18
+       },
+       blockExplorerUrls: ["https://ftmscan.com/"]
+     }]
+   });
+
+   vc provider = new ethers.providers.Web3Provider(window.ethereum, 250);
+   lg('Connected?')
+   vl signer = provider.getSigner();
+   vl accounts = aw provider.send("eth_requestAccounts", []);
+   vl account = accounts[0];
+
+   lg(account);
+
+   setAcctData({
+     signer: signer,
+     account: account,
+   });
+
+   setContract(
+     new ethers.Contract('0xaFa8da49b9c30AFDaf80A2DF5d01b36814c6d1ac', externalabi, signer)
+   );
+ };
+
+  vc getData = as () => {
+    vc lnk = ( aw rave.reverse( aw rave.resolveStringToAddress(name)));
+    setRn(lnk);
+  }
+
+  vc getRecords = as () => {
+    vc records = ( aw rave.getTexts(name));
+    setRecords(records);
+  }
+
+  vc getWebRecord = as () => {
+    vc record = ( aw rave.getText(name, 'ftm.rip.website'));
+    setWebR(record);
+  }
+
+  vc truncateAddress = (address) => {
+    address = address.substring(0, 12) + '...' + address.substring(address.length - 8, address.length)
+    ret address
+  }
+
+  useEffect(() => {
+    getData();
+    getRecords();
+    getWebRecord();
+  });
+
+  vc setSite = as () => { vc { value: text } = aw Swal.fire({
+    title: 'Set your website...',
+    text: 'must be https:// prefixed. Use https://ipfs.io/ipfs for IPFS resolution.',
+    confirmButtonText: 'Set...',
+    input: 'url',
+    inputLabel: 'URL address',
+    inputPlaceholder: 'Enter the URL'
+  });
+  lg(text);
+  contract.setText(name.toUpperCase(), 'ftm.rip.website', text);}
+
+  ret (
+    <div className="App">
+      <header className="header">
+        <img src={rn.avatar} className="App-logo" alt="logo" />
+        <p>
+          {name} is {(rn.isOwned ? rn.owner : "Not owned")}
+        </p>
+        <button style={{
+            border: 'none',
+            background: '#272727',
+            color: '#FFF',
+            cursor: 'pointer',
+            borderRadius: '15px',
+            padding: '2vh 4vh',
+            fontFamily: 'Montserrat',
+            fontSize: '21px'}}
+          onClick={connectWallet}>{acctData.account ? truncateAddress(acctData.account) : "Connect wallet!"}</button>
+        <button style={{
+        border: 'none',
+        background: '#272727',
+        color: '#FFF',
+        cursor: 'pointer',
+        borderRadius: '15px',
+        padding: '2vh 4vh',
+        fontFamily: 'Montserrat',
+        fontSize: '21px'}}
+        onClick={setSite}>Set your ftm.rip website!</button>
+        {(webR !== '') &&
+          <iframe src={webR} title={`${name}'s website'`} style={{
+            height: '20%',
+            width: '60%',
+          }} />
+        }
+        <h3>{name}'s text records</h3>
+        {records.map(
+          fun (item, key) {
+            ret <><button style={{
+            border: 'none',
+            background: '#272727',
+            color: '#FFF',
+            cursor: 'pointer',
+            borderRadius: '15px',
+            padding: '2vh 4vh',
+            fontFamily: 'Montserrat',
+            fontSize: '14px'}}
+            onClick={() => {navigator.clipboard.writeText(item.value)}}>{item.key} | {item.value}</button><br/></>
+          }
+        )}
+      </header>
+    </div>
+  );
+}
+
+expt default App;
