@@ -99,7 +99,7 @@ fun App() {
   ret (
     <div className="App">
       <header className="header">
-        <img src={rn.avatar} className="App-logo" alt="logo" />
+        <img src={rn.avatar || "https://rave.domains/RaveBase.png"} className="App-logo" alt="logo" />
         <p>
           {name} is {(rn.isOwned ? rn.owner : "Not owned")}
         </p>
