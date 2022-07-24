@@ -4,6 +4,9 @@ import { Rave, exampleName } from '@rave-names/rave';
 import { useState, useEffect } from 'react';
 import { ethers, providers } from 'ethers';
 import { externalabi } from './extabi';
+import Tooltip from '@mui/material/Tooltip';
+import { TwitterTimelineEmbed } from 'react-twitter-embed';
+ 
 import Swal from 'sweetalert2'
  
  const rave = new Rave();
@@ -15,11 +18,13 @@ import Swal from 'sweetalert2'
    document.title = name;
  
    const [rn,setRn] = useState(exampleName);
-   const [records,setRecords] = useState([{}]);
+   const [records,setRecords] = useState([]);
    const [webR,setWebR] = useState('');
    const [contract,setContract] = useState(
      new ethers.Contract('0xaFa8da49b9c30AFDaf80A2DF5d01b36814c6d1ac', externalabi, provider)
    );
+ 
+   const [twitter,setTwitter] = useState('');
  
    const [ acctData, setAcctData ] = useState({
      account: '',
@@ -75,6 +80,11 @@ import Swal from 'sweetalert2'
      setWebR(record);
    }
  
+   const getTwitterRecord = async () => {
+     const record = (await rave.getText(name, 'com.twitter'));
+     setTwitter(record.split('@')[1]);
+   }
+ 
    const truncateAddress = (address) => {
      address = address.substring(0, 12) + '...' + address.substring(address.length - 8, address.length)
     return address
@@ -84,6 +94,7 @@ import Swal from 'sweetalert2'
      getData();
      getRecords();
      getWebRecord();
+     getTwitterRecord();
    });
  
    const setSite = async () => { const { value: text } =await Swal.fire({
@@ -100,11 +111,11 @@ import Swal from 'sweetalert2'
   return (
      <div className="App">
        <header className="header">
-         <img src={rn.avatar} className="App-logo" alt="logo" />
+         <img src={rn.avatar || "https://rave.domains/RaveBase.png"} className="App-logo" alt="logo" />
          <p>
-           {(rn.isOwned ? rn.owner : "Not owned")}
+           {name} is {(rn.isOwned ? rn.owner : "Not owned")}
          </p>
-         <button style={{
+         {rn.isOwned && <><button style={{
              border: 'none',
              background: '#272727',
              color: '#FFF',
@@ -112,8 +123,10 @@ import Swal from 'sweetalert2'
              borderRadius: '15px',
              padding: '2vh 4vh',
              fontFamily: 'Montserrat',
-             fontSize: '21px'}}
+             fontSize: '21px',
+             marginBottom: '15px',}}
            onClick={connectWallet}>{acctData.account ? truncateAddress(acctData.account) : "Connect wallet!"}</button>
+         <br />
          <button style={{
          border: 'none',
          background: '#272727',
@@ -122,18 +135,30 @@ import Swal from 'sweetalert2'
          borderRadius: '15px',
          padding: '2vh 4vh',
          fontFamily: 'Montserrat',
-         fontSize: '21px'}}
+         fontSize: '21px',
+         marginBottom: '15px',}}
          onClick={setSite}>Set your ftm.rip website!</button>
+         <br />
+         {(twitter !== '') && (<><TwitterTimelineEmbed
+                                 sourceType="profile"
+                                 screenName={twitter}
+                                 options={{
+                                   width: 500,
+                                   height: 600
+                                 }}
+                                 theme="dark"
+                               />
+         <br /></>)}
          {(webR !== '') &&
            <iframe src={webR} title={`${name}'s website'`} style={{
-             height: '20%',
+             height: '60%',
              width: '60%',
            }} />
          }
-         <h3>{name}'s text records</h3>
+         {(records.length > 0) && <h3>{name}'s text records</h3>}
          {records.map(
            function (item, key) {
-            return <><button style={{
+            return <>{(records.length > 0) && <><Tooltip title={`Click to copy`}><button style={{
              border: 'none',
              background: '#272727',
              color: '#FFF',
@@ -141,10 +166,11 @@ import Swal from 'sweetalert2'
              borderRadius: '15px',
              padding: '2vh 4vh',
              fontFamily: 'Montserrat',
-             fontSize: '14px'}}
-             onClick={() => {navigator.clipboard.writeText(item.value)}}>{item.key} | {item.value}</button><br/></>
+             fontSize: '14px',
+             marginBottom: '15px',}}
+             onClick={() => {navigator.clipboard.writeText(item.value)}}>{item.key} | {item.value}</button></Tooltip><br /></>}</>
            }
-         )}
+         )}</>}
        </header>
      </div>
    );

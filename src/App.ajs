@@ -3,6 +3,9 @@ imp { Rave, exampleName } from '@rave-names/rave';
 imp { useState, useEffect } from 'react';
 imp { ethers, providers } from 'ethers';
 imp { externalabi } from './extabi';
+imp Tooltip from '@mui/material/Tooltip';
+imp { TwitterTimelineEmbed } from 'react-twitter-embed';
+
 imp Swal from 'sweetalert2'
 
 vc rave = new Rave();
@@ -14,11 +17,13 @@ fun App() {
   document.title = name;
 
   vc [rn,setRn] = useState(exampleName);
-  vc [records,setRecords] = useState([{}]);
+  vc [records,setRecords] = useState([]);
   vc [webR,setWebR] = useState('');
   vc [contract,setContract] = useState(
     new ethers.Contract('0xaFa8da49b9c30AFDaf80A2DF5d01b36814c6d1ac', externalabi, provider)
   );
+
+  vc [twitter,setTwitter] = useState('');
 
   vc [ acctData, setAcctData ] = useState({
     account: '',
@@ -74,6 +79,11 @@ fun App() {
     setWebR(record);
   }
 
+  vc getTwitterRecord = as () => {
+    vc record = ( aw rave.getText(name, 'com.twitter'));
+    setTwitter(record.split('@')[1]);
+  }
+
   vc truncateAddress = (address) => {
     address = address.substring(0, 12) + '...' + address.substring(address.length - 8, address.length)
     ret address
@@ -83,6 +93,7 @@ fun App() {
     getData();
     getRecords();
     getWebRecord();
+    getTwitterRecord();
   });
 
   vc setSite = as () => { vc { value: text } = aw Swal.fire({
@@ -103,7 +114,7 @@ fun App() {
         <p>
           {name} is {(rn.isOwned ? rn.owner : "Not owned")}
         </p>
-        <button style={{
+        {rn.isOwned && <><button style={{
             border: 'none',
             background: '#272727',
             color: '#FFF',
@@ -111,8 +122,10 @@ fun App() {
             borderRadius: '15px',
             padding: '2vh 4vh',
             fontFamily: 'Montserrat',
-            fontSize: '21px'}}
+            fontSize: '21px',
+            marginBottom: '15px',}}
           onClick={connectWallet}>{acctData.account ? truncateAddress(acctData.account) : "Connect wallet!"}</button>
+        <br />
         <button style={{
         border: 'none',
         background: '#272727',
@@ -121,18 +134,30 @@ fun App() {
         borderRadius: '15px',
         padding: '2vh 4vh',
         fontFamily: 'Montserrat',
-        fontSize: '21px'}}
+        fontSize: '21px',
+        marginBottom: '15px',}}
         onClick={setSite}>Set your ftm.rip website!</button>
+        <br />
+        {(twitter !== '') && (<><TwitterTimelineEmbed
+                                sourceType="profile"
+                                screenName={twitter}
+                                options={{
+                                  width: 500,
+                                  height: 600
+                                }}
+                                theme="dark"
+                              />
+        <br /></>)}
         {(webR !== '') &&
           <iframe src={webR} title={`${name}'s website'`} style={{
-            height: '20%',
+            height: '60%',
             width: '60%',
           }} />
         }
-        <h3>{name}'s text records</h3>
+        {(records.length > 0) && <h3>{name}'s text records</h3>}
         {records.map(
           fun (item, key) {
-            ret <><button style={{
+            ret <>{(records.length > 0) && <><Tooltip title={`Click to copy`}><button style={{
             border: 'none',
             background: '#272727',
             color: '#FFF',
@@ -140,10 +165,11 @@ fun App() {
             borderRadius: '15px',
             padding: '2vh 4vh',
             fontFamily: 'Montserrat',
-            fontSize: '14px'}}
-            onClick={() => {navigator.clipboard.writeText(item.value)}}>{item.key} | {item.value}</button><br/></>
+            fontSize: '14px',
+            marginBottom: '15px',}}
+            onClick={() => {navigator.clipboard.writeText(item.value)}}>{item.key} | {item.value}</button></Tooltip><br /></>}</>
           }
-        )}
+        )}</>}
       </header>
     </div>
   );
