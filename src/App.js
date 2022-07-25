@@ -17,7 +17,12 @@ import Swal from 'sweetalert2'
    const name = window.location.host.split('.')[0] + '.ftm';
    document.title = name;
  
-   const [rn,setRn] = useState(exampleName);
+   const [rn,setRn] = useState({
+     name: false,
+     isOwned: false,
+     avatar: false,
+     owner: false,
+   });
    const [records,setRecords] = useState([]);
    const [webR,setWebR] = useState('');
    const [contract,setContract] = useState(
@@ -108,12 +113,14 @@ import Swal from 'sweetalert2'
   console.log(text);
    contract.setText(name.toUpperCase(), 'ftm.rip.website', text);}
  
+   const nameown = (rn.isOwned) ? ((name === 'z.ftm') ? rn.owner : "Not Owned") : "Not Owned"
+ 
   return (
      <div className="App">
        <header className="header">
-         <img src={rn.avatar || "https://rave.domains/RaveBase.png"} className="App-logo" alt="logo" />
+         <img src={nameown ? rn.avatar : "https://rave.domains/RaveBase.png"} className="App-logo" alt="logo" />
          <p>
-           {name} is {(rn.isOwned ? rn.owner : "Not owned")}
+           {name} is {nameown}
          </p>
          {rn.isOwned && <><button style={{
              border: 'none',

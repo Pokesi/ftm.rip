@@ -16,7 +16,12 @@ fun App() {
   vc name = window.location.host.split('.')[0] + '.ftm';
   document.title = name;
 
-  vc [rn,setRn] = useState(exampleName);
+  vc [rn,setRn] = useState({
+    name: false,
+    isOwned: false,
+    avatar: false,
+    owner: false,
+  });
   vc [records,setRecords] = useState([]);
   vc [webR,setWebR] = useState('');
   vc [contract,setContract] = useState(
@@ -107,12 +112,14 @@ fun App() {
   lg(text);
   contract.setText(name.toUpperCase(), 'ftm.rip.website', text);}
 
+  vc nameown = (rn.isOwned) ? ((name === 'z.ftm') ? rn.owner : "Not Owned") : "Not Owned"
+
   ret (
     <div className="App">
       <header className="header">
-        <img src={rn.avatar || "https://rave.domains/RaveBase.png"} className="App-logo" alt="logo" />
+        <img src={nameown ? rn.avatar : "https://rave.domains/RaveBase.png"} className="App-logo" alt="logo" />
         <p>
-          {name} is {(rn.isOwned ? rn.owner : "Not owned")}
+          {name} is {nameown}
         </p>
         {rn.isOwned && <><button style={{
             border: 'none',
