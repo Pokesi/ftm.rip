@@ -1,1 +1,1 @@
-# (ftm.rip)[https://ftm.rip]
+# [ftm.rip](https://ftm.rip)
