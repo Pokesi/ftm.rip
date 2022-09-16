@@ -15,6 +15,7 @@ import Swal from 'sweetalert2'
  
  function App() {
    const name = window.location.host.split('.')[0] + '.ftm';
+   window.location = `https://alpha.rave.domains/name/${name}`;
    document.title = name;
  
    const [rn,setRn] = useState({
